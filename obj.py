@@ -108,7 +108,7 @@ class EnvMap(object):
 
         dir = norm(dir)
 
-        x = int((arctan2(dir[2], dir[0]) / (2 * pi)) * self.width)
+        x = int(((arctan2(dir[2], dir[0]) / (2 * pi)) + 0.5) * self.width)
         y = int(arccos(-dir[1]) / pi * self.height)
 
         return self.pixels[y][x]
