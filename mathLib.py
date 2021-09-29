@@ -3,6 +3,13 @@ from math import pi
 
 V3 = namedtuple('Point3', ['x', 'y', 'z'])
 
+def vectMul(v0, v1):
+  
+  return V3(v0.x * v1.x, v0.y * v1.y, v0.z * v1.z)
+
+def add(v0, v1):
+    return V3(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z)
+
 def sub(v0, v1):
   
   return V3(v0.x - v1.x, v0.y - v1.y, v0.z - v1.z)

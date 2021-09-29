@@ -1,10 +1,14 @@
 import struct
 from collections import namedtuple
-from obj import Obj
-import random
-import numpy as np
-from math import cos, sin, tan
+from obj import Obj, SetColor
+from math import tan
 from mathLib import *
+
+OPAQUE = 0  
+REFLECTIVE = 1
+TRANSPARENT = 2
+
+MAX_RECURSION_DEPTH = 3
 
 V2 = namedtuple('Point2', ['x', 'y'])
 V3 = namedtuple('Point3', ['x', 'y', 'z'])
@@ -22,12 +26,13 @@ def dword(d):
     # 4 bytes
     return struct.pack('=l', d)
 
-def SetColor(r, g, b):
-    # Acepta valores de 0 a 1
-    return bytes( [int(b * 255), int(g * 255), int(r * 255)] )
+def reflectVector(normal, dirVector):
+    reflect = 2 * dot(normal, dirVector)
+    reflect = norm(sub(mul(normal, reflect), dirVector))
+    return reflect
 
-Black = SetColor(0,0,0)
-White = SetColor(1,1,1)
+Black = (0,0,0)
+White = (1,1,1)
 
 class Raytracer(object):
     def __init__(self, width, height):
@@ -42,6 +47,12 @@ class Raytracer(object):
 
         self.scene = []
 
+        self.pointLights = []
+        self.ambLight = None
+        self.dirLight = None
+
+        self.envmap = None
+
     def glCreateWindow(self, width, height):
         self.width = width
         self.height = height
@@ -49,20 +60,10 @@ class Raytracer(object):
         self.glViewport(0, 0, width, height)
 
     def glViewport(self, x, y, width, height):
-        self.vpX = x
-        self.vpY = y
-        self.vpWidth = width
-        self.vpHeight = height
-
-    def glVertex(self, x, y):
-        Xw = round((x + 1) * (self.vpWidth * 0.5) + self.vpX)
-        Yw = round((y + 1) * (self.vpHeight * 0.5) + self.vpY)
-        if (Xw == self.vpWidth):
-            Xw -= 1
-        if (Yw == self.vpHeight):
-            Yw -= 1
-        #print(Xw, Yw)
-        self.pixels[int(Xw)][int(Yw)] = self.curr_color
+        self.vpX = int(x)
+        self.vpY = int(y)
+        self.vpWidth = int(width)
+        self.vpHeight = int(height)
 
     def glClearColor(self, r, g, b):
         self.clear_color = SetColor(r, g, b)
@@ -87,7 +88,7 @@ class Raytracer(object):
     def glPoint(self, x, y, color = None):
         if x < self.vpX or x >= self.vpX + self.vpWidth or y < self.vpY or y >= self.vpY + self.vpHeight:
             return
-        if (0 < x < self.width) and (0 < y < self.height): 
+        if (0 <= x < self.width) and (0 <= y < self.height): 
             self.pixels[int(x)][int(y)] = color or self.curr_color
     
     def glFinish(self, filename):
@@ -115,7 +116,9 @@ class Raytracer(object):
             # Color Table
             for y in range(self.height):
                 for x in range(self.width):
-                    file.write(self.pixels[x][y])
+                    file.write( SetColor(self.pixels[x][y][0],
+                                         self.pixels[x][y][1],
+                                         self.pixels[x][y][2]))
 
     def glREnder(self):
         for y in range(self.height):
@@ -153,26 +156,125 @@ class Raytracer(object):
                 direction = norm(V3(Px, Py, -1))
                 self.glPoint(x, y, self.cast_ray(self.camPosition, direction))
 
-    def cast_ray(self, orig, dir):
+    def cast_ray(self, orig, dir, origObj = None, recursion = 0):
 
-        material = self.scene_intersect(orig, dir)
+        intersect = self.scene_intersect(orig, dir, origObj)
 
-        if material == None:
+        if intersect == None or recursion >= MAX_RECURSION_DEPTH:
+            if self.envmap:
+                return self.envmap.getColor(dir)
             return self.clear_color
-        else:
-            return material.diffuse
 
+        material = intersect.sceneObject.material 
 
-    def scene_intersect(self, orig, dir):
+        finalColor = V3(0,0,0)
+        objectColor = V3(material.diffuse[0],
+                         material.diffuse[1],
+                         material.diffuse[2])
+
+        ambientColor = V3(0,0,0)
+        dirLightColor = V3(0,0,0)
+        pLightColor = V3(0,0,0)
+        finalSpecColor = V3(0,0,0)
+        reflectColor = V3(0,0,0)
+
+        # direccion de la vista
+        view_dir = norm(sub(self.camPosition, intersect.point))
+
+        
+        if self.ambLight:
+            ambientColor = self.ambLight.getColor()
+
+        if self.dirLight:
+            diffuseColor = V3(0,0,0)
+            specColor = V3(0,0,0)
+            shadow_intensity = 0
+
+            # Iluminacion difusa
+            light_dir = mul(self.dirLight.direction, -1)
+            intensity = max(0, dot(intersect.normal, light_dir)) * self.dirLight.intensity
+            diffuseColor = V3(intensity * self.dirLight.color[0],
+                              intensity * self.dirLight.color[1],
+                              intensity * self.dirLight.color[2])
+
+            # Iluminacion especular 
+            reflect = reflectVector(intersect.normal, light_dir)
+            spec_Intensity = self.dirLight.intensity * max(0, dot(view_dir, reflect)) **  material.spec
+            specColor = V3(spec_Intensity * self.dirLight.color[0],
+                           spec_Intensity * self.dirLight.color[1],
+                           spec_Intensity * self.dirLight.color[2])
+
+            #Shadow
+            shadInter = self.scene_intersect(intersect.point, light_dir, intersect.sceneObject)
+            if shadInter:
+                shadow_intensity = 1
+
+            shadow_intensity = 1 - shadow_intensity 
+            dirLightColor = mul(diffuseColor, shadow_intensity)
+            finalSpecColor = add(finalSpecColor, mul(specColor, shadow_intensity))
+
+        for pointLight in self.pointLights:
+            diffuseColor = V3(0,0,0)
+            specColor = V3(0,0,0)
+            shadow_intensity = 0
+
+            # Iluminacion difusa 
+            light_dir = norm(sub(pointLight.position, intersect.point))
+            intensity = max(0, dot(intersect.normal, light_dir)) * pointLight.intensity
+            diffuseColor = V3(intensity * pointLight.color[0],
+                              intensity * pointLight.color[1],
+                              intensity * pointLight.color[2])
+
+            # Iluminacion especular 
+            reflect = reflectVector(intersect.normal, light_dir)
+            spec_Intensity = pointLight.intensity * max(0, dot(view_dir, reflect)) ** material.spec
+            specColor = V3(spec_Intensity * pointLight.color[0],
+                           spec_Intensity * pointLight.color[1],
+                           spec_Intensity * pointLight.color[2])
+            #Shadow
+            shadInter = self.scene_intersect(intersect.point, light_dir, intersect.sceneObject)
+            lightDistance = length(sub(pointLight.position, intersect.point))
+            if shadInter and shadInter.distance < lightDistance:
+                shadow_intensity = 1
+
+            shadow_intensity = 1 - shadow_intensity 
+            pLightColor = add(pLightColor,  mul(diffuseColor, shadow_intensity))
+            finalSpecColor = add(finalSpecColor, mul(specColor, shadow_intensity))
+
+        
+        if material.matType == OPAQUE:
+            finalColor = add(pLightColor, ambientColor)
+            finalColor = add(finalColor, dirLightColor)
+            finalColor = add(finalColor, finalSpecColor)
+        elif material.matType == REFLECTIVE:
+            reflect = reflectVector(intersect.normal, mul(dir,-1))
+            reflectColor = self.cast_ray(intersect.point, reflect, intersect.sceneObject, recursion + 1)
+            reflectColor = V3(reflectColor[0],
+                              reflectColor[1],
+                              reflectColor[2],)
+            finalColor = add(reflectColor, finalSpecColor)
+
+        # Le aplicamos el color del objeto
+        finalColor = vectMul(objectColor, finalColor)
+
+        #Nos aseguramos que no suba el valor de color de 1
+        r = min(1, finalColor[0])
+        g = min(1, finalColor[1])
+        b = min(1, finalColor[2])
+
+        return (r,g,b)
+
+    def scene_intersect(self, orig, dir, oriObj = None):
         depth = float('inf')
-        material = None
+        intersect = None
         
         for obj in self.scene:
-            intersect = obj.ray_intersect(orig,dir)
-            if intersect != None:
-                if intersect.distance < depth:
-                    depth = intersect.distance
-                    material = obj.material
+            if obj is not oriObj:
+                hit = obj.ray_intersect(orig,dir)
+                if hit != None:
+                    if hit.distance < depth:
+                        depth = hit.distance
+                        intersect  = hit
 
-        return material
+        return intersect
 

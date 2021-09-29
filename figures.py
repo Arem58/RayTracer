@@ -1,35 +1,66 @@
 from math import dist
-from gl import White
 from mathLib import *
 
+OPAQUE = 0  
+REFLECTIVE = 1
+TRANSPARENT = 2
+
+White = (1,1,1)
+class DirectionalLight(object):
+    def __init__(self, direction=V3(0,-1,0), intensity = 1,color = White):
+        self.direction = norm(direction)
+        self.intensity = intensity
+        self.color = color
+
+class AmbientLight(object):
+    def __init__(self, strength = 0, color = White):
+        self.strength = strength
+        self.color = color
+    
+    def getColor(self):
+        return (V3(self.strength * self.color[0],
+                   self.strength * self.color[1],
+                   self.strength * self.color[2]))
+
+class PointLight(object):
+    # Luz con putno de origen que va en todas direcciones
+    def __init__(self, position = V3(0,0,0), intensity = 1, color = White):
+        self.position = position
+        self.intensity = intensity
+        self.color = color
+
 class Material(object):
-    def __init__(self, diffuse = White):
+    def __init__(self, diffuse = White, spec = 1, matType = OPAQUE):
         self.diffuse = diffuse
+        self.spec = spec
+        self.matType = matType
 
 class Intersect(object):
-    def __init__(self, distance):
+    def __init__(self, distance, point, normal, sceneObject):
         self.distance = distance
+        self.point = point
+        self.normal = normal
+        self.sceneObject = sceneObject
 
 class Sphere(object):
-    def __init__(self, center, radius, material):
+    def __init__(self, center, radius, material = Material()):
         self.center = center
         self.radius = radius
         self.material = material
 
     def ray_intersect(self, orig, dir):
         
-        # P = O + t * D
-
         L = sub(self.center, orig)
+        l = length(L)
 
         tca = dot(L, dir)
-        l = length(L)
-        d = (l**2 - tca**2) ** 0.5
 
-        if d > self.radius:
+        d = (l**2 - tca**2) 
+
+        if d > self.radius ** 2:
             return None
 
-        thc = (self.radius**2 - d**2)**0.5
+        thc = (self.radius**2 - d)**0.5
         t0 = tca - thc
         t1 = tca + thc
 
@@ -41,6 +72,13 @@ class Sphere(object):
             return None
 
         # La camara esta dentro de la esfera 
-        
-        return Intersect( distance = t0 )
+        # P = O + t * D
+
+        hit = add(orig, mul(dir, t0))
+        normal = norm(sub(hit, self.center))
+
+        return Intersect( distance = t0,
+                          point = hit, 
+                          normal = normal, 
+                          sceneObject = self)
 
