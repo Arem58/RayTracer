@@ -2,8 +2,8 @@ from gl import Raytracer, V3, SetColor
 from obj import Obj, Texture, EnvMap
 from figures import *
 
-width = 1920 
-height = 1080 
+width = 512 
+height = 512 
 
 #Materiales
 stone = Material(diffuse = (0.4,0.4,0.4), spec = 64)
@@ -15,19 +15,24 @@ glass = Material(spec = 64, ior = 1.5, matType = TRANSPARENT)
 diamond = Material(spec = 64, ior = 2.417, matType = TRANSPARENT)
 
 rtx = Raytracer(width, height)
-rtx.envmap = EnvMap('cave_wall_8k.bmp')
+rtx.envmap = EnvMap('envmap_playa.bmp')
 #RT2: Opaque, Reflections & Refractions--------------------------------------------------------------------------------------------------
-
+#Light
 rtx.ambLight = AmbientLight(strength = 0.1)
 rtx.dirLight = DirectionalLight(direction = V3(1, -1, -2), intensity = 0.5)
 rtx.pointLights.append( PointLight(position = V3(0, 2, 0), intensity = 0.5))
+
+#Objects
+rtx.scene.append(AABB(V3(-2,0,-8), V3(2,2,2), mirror))
+rtx.scene.append(AABB(V3(2,0,-8), V3(2,2,2), glass))
 #rtx.pointLights.append(PointLight(position=V3(5, -7, 0)))
-rtx.scene.append( Sphere(V3(-6,0,-8), 1.5, mirror ))
-rtx.scene.append( Sphere(V3(-2,0,-8), 1.5, water ))
-rtx.scene.append( Sphere(V3(2,0,-8), 1.5, glass ))
-rtx.scene.append( Sphere(V3(6,0,-8), 1.5, diamond ))
-rtx.scene.append( Sphere(V3(-1,1,-5), 0.5, mirror ))
-rtx.scene.append( Sphere(V3(0.5,0.5,-5), 0.5, gold ))
+#rtx.scene.append( Sphere(V3(0, 0,-8), 1.5, water ))
+#rtx.scene.append( Plane(V3(0, -3, 0), V3(0,1,0), stone))
+#rtx.scene.append( Sphere(V3(-2,0,-8), 1.5, water ))
+#rtx.scene.append( Sphere(V3(2,0,-8), 1.5, glass ))
+#rtx.scene.append( Sphere(V3(6,0,-8), 1.5, diamond ))
+#rtx.scene.append( Sphere(V3(-1,1,-5), 0.5, mirror ))
+#rtx.scene.append( Sphere(V3(0.5,0.5,-5), 0.5, gold ))
 
 #RT1: Spheres and Materials--------------------------------------------------------------------------------------------------
 #material1 = Material(SetColor(0.945, 0.894, 0.792))
