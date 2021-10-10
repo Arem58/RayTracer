@@ -285,6 +285,13 @@ class Raytracer(object):
             finalColor = add(pLightColor, ambientColor)
             finalColor = add(finalColor, dirLightColor)
             finalColor = add(finalColor, finalSpecColor)
+
+            if material.texture and intersect.texCoords:
+                texColor = material.texture.getColor(intersect.texCoords[0], intersect.texCoords[1])
+                texColor = V3(texColor[0], texColor[1], texColor[2])
+                finalColor = vectMul(finalColor, texColor)
+
+
         elif material.matType == REFLECTIVE:
             reflect = reflectVector(intersect.normal, mul(dir,-1))
             reflectColor = self.cast_ray(intersect.point, reflect, intersect.sceneObject, recursion + 1)

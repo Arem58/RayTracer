@@ -62,7 +62,7 @@ class Texture(object):
                     g = ord(image.read(1)) / 255
                     r = ord(image.read(1)) / 255
 
-                    self.pixels[y].append( SetColor(r,g,b) )
+                    self.pixels[y].append( (r,g,b) )
 
     def getColor(self, tx, ty):
 
@@ -75,7 +75,7 @@ class Texture(object):
         
         else: 
             
-            return SetColor(0, 0, 0)
+            return (0, 0, 0)
 
 class EnvMap(object):
     def __init__(self, filename):
