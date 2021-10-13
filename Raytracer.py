@@ -3,8 +3,8 @@ from obj import Obj, Texture, EnvMap
 from figures import *
 
 # Dimensiones
-width = 512
-height = 512
+width = 128
+height = 128
 
 # Materiales
 wood = Material(diffuse = (0.6,0.2,0.2), spec = 64)
@@ -14,25 +14,132 @@ gold = Material(diffuse = (1, 0.8, 0 ),spec = 32, matType = REFLECTIVE)
 mirror = Material(spec = 128, matType = REFLECTIVE)
 
 water = Material(spec = 64, ior = 1.33, matType = TRANSPARENT)
+portal = Material(diffuse = (75/255,0,130/255), spec = 64, ior = 1.33, matType = TRANSPARENT)
 glass = Material(spec = 64, ior = 1.5, matType = TRANSPARENT)
 diamond = Material(spec = 64, ior = 2.417, matType = TRANSPARENT)
 
 earth = Material(texture = Texture('earthDay.bmp'))
 box = Material(texture = Texture('box.bmp'))
+obsidian = Material(texture = Texture('obsidian.bmp'))
+doorUp = Material(texture = Texture('door.bmp'))
+doorDown = Material(texture = Texture('door2.bmp'))
 
 
 # Inicializacion
 rtx = Raytracer(width,height)
-rtx.envmap = EnvMap('envmap_playa.bmp')
+rtx.envmap = EnvMap('envmap_parqueo.bmp')
 
 # Luces
 rtx.ambLight = AmbientLight(strength = 0.1)
 rtx.dirLight = DirectionalLight(direction = V3(1, -1, -2), intensity = 0.5)
 rtx.pointLights.append( PointLight(position = V3(0, 2, 0), intensity = 0.5))
+#rtx.ambLight = AmbientLight(strength = 0.1)
+#rtx.dirLight = DirectionalLight(direction = V3(0, 0, -1), intensity = 0.5)
+#rtx.pointLights.append( PointLight(position = V3(0, 8, 0), intensity = 0.5))
+#rtx.pointLights.append( PointLight(position = V3(0, -8, 0), intensity = 0.5))
+
+#tx.scene.append( Sphere(V3(0,0,-8), 2, stone ))
+#rtx.scene.append( Sphere(V3(-1,1,-5), 0.5, mirror ))
+#rtx.scene.append( Sphere(V3(0.5,0.5,-5), 0.5, gold ))
 
 # Objetos
-rtx.scene.append( Sphere(V3(0,0,-8), 2, earth) )
-rtx.scene.append( AABB(V3(0,-3,-8), V3(5,0.1,5), box) )
+#rtx.scene.append( Sphere(V3(0,0,-8), 2, earth) )
+
+#Casa de cristal
+#tx.scene.append( AABB(V3(-6,-6,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,-3,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,0,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,3,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,6,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,9,-29), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(-9,-6,-26), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-9,-3,-26), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-9,0,-26), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-9,3,-26), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-9,6,-26), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-9,9,-26), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(-6,-6,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,-3,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,0,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,3,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,6,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-6,9,-23), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(-3,-6,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-3,-3,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-3,0,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-3,3,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-3,6,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(-3,9,-20), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(0,-6,-20), V3(3,3,1), doorDown) )
+#tx.scene.append( AABB(V3(0,-3,-20), V3(3,3,1), doorUp) )
+#tx.scene.append( AABB(V3(0,0,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(0,3,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(0,6,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(0,9,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(0,9,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(0,9,-26), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(0,9,-29), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(3,-6,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(3,-3,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(3,0,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(3,3,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(3,6,-20), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(3,9,-20), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(6,-6,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,-3,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,0,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,3,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,6,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,9,-23), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(9,-6,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(9,-3,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(9,0,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(9,3,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(9,6,-23), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(9,9,-23), V3(3,3,3), glass) )
+#
+#tx.scene.append( AABB(V3(6,-6,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,-3,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,0,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,3,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,6,-29), V3(3,3,3), glass) )
+#tx.scene.append( AABB(V3(6,9,-29), V3(3,3,3), glass) )
+
+#Portal
+rtx.scene.append( AABB(V3(-1.5,-3,-26), V3(3,3,1), portal) )
+rtx.scene.append( AABB(V3(-1.5,0,-26), V3(3,3,1), portal) )
+rtx.scene.append( AABB(V3(-1.5,3,-26), V3(3,3,1), portal) )
+rtx.scene.append( AABB(V3(1.5,-3,-26), V3(3,3,1), portal) )
+rtx.scene.append( AABB(V3(1.5,0,-26), V3(3,3,1), portal) )
+rtx.scene.append( AABB(V3(1.5,3,-26), V3(3,3,1), portal) )
+
+#Fila abajo
+rtx.scene.append( AABB(V3(-4.5,-6,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(-1.5,-6,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(1.5,-6,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(4.5,-6,-26), V3(3,3,3), obsidian) )
+#Fila izquierda
+rtx.scene.append( AABB(V3(-4.5,-3,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(-4.5,0,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(-4.5,3,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(-4.5,6,-26), V3(3,3,3), obsidian) )
+#Fila derecha
+rtx.scene.append( AABB(V3(4.5,-3,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(4.5,0,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(4.5,3,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(4.5,6,-26), V3(3,3,3), obsidian) )
+#Fila arriba
+rtx.scene.append( AABB(V3(-1.5,6,-26), V3(3,3,3), obsidian) )
+rtx.scene.append( AABB(V3(1.5,6,-26), V3(3,3,3), obsidian) )
+
+#rtx.scene.append( Sphere(V3(0, 2.5,-10), 3, mirror ))
 
 #RT2: Opaque, Reflections & Refractions--------------------------------------------------------------------------------------------------
 #Materials
